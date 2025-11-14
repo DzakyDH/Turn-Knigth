@@ -1,101 +1,69 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Tilemaps;
-using System.Collections.Generic;
+using System.Collections;
 
 public class PlayerGridMovement : MonoBehaviour
 {
-    public Tilemap groundTilemap;
+    public Tilemap groundTilemap;   // <- ini WAJIB kamu isi di inspector
+    public float moveSpeed = 4f;
+    public SpriteRenderer spriteRenderer;
 
-    public GameObject footIconPrefab;
-    public GameObject pathDotPrefab;
-
-    private Vector3Int selectedTile;
-    private bool hasSelected = false;
-
-    private GameObject footIcon;
-    private List<GameObject> pathDoths = new List<GameObject>();
-
-    private Vector3Int currentfile;
+    private bool isMoving = false;
 
     private void Start()
     {
-        currentfile = groundTilemap.WorldToCell(transform.position);
+        Vector3Int cell = groundTilemap.WorldToCell(transform.position);
+        transform.position = groundTilemap.GetCellCenterWorld(cell);
     }
     private void Update()
     {
+        if (isMoving) return;
+
         if (Input.GetMouseButtonDown(0))
         {
             Vector3 world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3Int clickedTile = groundTilemap.WorldToCell(world);
+            Vector3Int cell = groundTilemap.WorldToCell(world);
 
-            if (!groundTilemap.HasTile(clickedTile))
+            if (!groundTilemap.HasTile(cell))
                 return;
 
-            if (hasSelected && clickedTile == selectedTile)
-            {
-                MoveAlongPath(clickedTile);
-                ClearPathPreview();
-                hasSelected = false;
-                return;
-            }
-            selectedTile = clickedTile;
-            hasSelected = true;
+            TryMove(cell);
+        }
+    }
+    void LateUpdate()
+    {
+        spriteRenderer.sortingOrder = (int)(-transform.position.y * 10);
+    }
 
-            PreviewPath(clickedTile);
-        }
-    }
-    void PreviewPath(Vector3Int targetTile)
+    void TryMove(Vector3Int targetCell)
     {
-        ClearPathPreview();
+        Vector3 current = groundTilemap.WorldToCell(transform.position);
 
-        footIcon = Instantiate(footIconPrefab, groundTilemap.GetCellCenterLocal(targetTile),Quaternion.identity);
-        List<Vector3Int> path = GeneratesSimplePath(currentfile, targetTile);
+        // Hanya boleh gerak 1 langkah
+        if (Mathf.Abs(targetCell.x - current.x) + Mathf.Abs(targetCell.y - current.y) != 1)
+            return;
 
-        foreach(var cell in path)
-        {
-            GameObject dot = Instantiate(pathDotPrefab, groundTilemap.GetCellCenterWorld(cell), Quaternion.identity);
-            pathDoths.Add(dot);
-        }
-    }
-    List<Vector3Int> GeneratesSimplePath(Vector3Int start, Vector3Int end)
-    {
-        List<Vector3Int>path = new List<Vector3Int>();
-        Vector3Int temp = start;
+        // Convert cell ke world posisi tengah tile
+        Vector3 targetPos = groundTilemap.GetCellCenterWorld(targetCell);
 
-        while (temp.x != end.x)
-        {
-            temp.x += temp.x < end.x ? 1 : -1;
-            path.Add(temp);
-        }
-        while (temp.y != end.y)
-        {
-            temp.y += temp.y < end.y ? 1 : -1;
-            path.Add(temp);
-        }
-        return path;
+        StartCoroutine(MoveToTile(targetPos));
     }
-    void ClearPathPreview()
+
+    IEnumerator MoveToTile(Vector3 target)
     {
-        if (footIcon != null) Destroy(footIcon);
-        foreach (var dot in pathDoths) Destroy(dot);
-        pathDoths.Clear();
-    }
-    void MoveAlongPath(Vector3Int targetTile)
-    {
-        List<Vector3Int> path = GeneratesSimplePath (currentfile, targetTile);
-        StartCoroutine(MoveStepByStep(path));
-        currentfile = targetTile;
-    }
-    System.Collections.IEnumerator MoveStepByStep(List<Vector3Int> path)
-    {
-        foreach (var step in path)
+        isMoving = true;
+
+        while (Vector3.Distance(transform.position, target) > 0.01f)
         {
-            Vector3 pos = groundTilemap.GetCellCenterWorld(step);
-            while (Vector3.Distance(transform.position, pos) > 0.01f)
-            {
-                transform.position = Vector3.MoveTowards(transform.position, pos, Time.deltaTime * 3f);
-                yield return null;
-            }
+            transform.position = Vector3.MoveTowards(
+                transform.position,
+                target,
+                moveSpeed * Time.deltaTime
+            );
+            yield return null;
         }
+
+        transform.position = target;
+        isMoving = false;
     }
 }
