@@ -840,8 +840,8 @@ TextureImporter:
         y: 823
         width: 84
         height: 91
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.74529403, y: 0.27361256}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -858,12 +858,12 @@ TextureImporter:
       name: Warrior_Blue_24
       rect:
         serializedVersion: 2
-        x: 223
+        x: 222
         y: 823
         width: 86
         height: 91
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.74772465, y: 0.2780849}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -884,8 +884,8 @@ TextureImporter:
         y: 823
         width: 86
         height: 91
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.736612, y: 0.27754363}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -906,8 +906,8 @@ TextureImporter:
         y: 813
         width: 125
         height: 102
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.43543163, y: 0.38390994}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -925,11 +925,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 827
-        y: 823
-        width: 68
-        height: 96
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+        y: 824
+        width: 124
+        height: 95
+      alignment: 9
+      pivot: {x: 0.43940884, y: 0.30711862}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -994,8 +994,8 @@ TextureImporter:
         y: 823
         width: 87
         height: 90
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.50249755, y: 0.30523208}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -1844,6 +1844,28 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Warrior_Blue_10
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 1014
+        width: 109
+        height: 115
+      alignment: 9
+      pivot: {x: 0.3449007, y: 0.24854046}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 084a9f3191a238944a140e321d5e29b1
+      internalID: -49795780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -1862,6 +1884,7 @@ TextureImporter:
       Warrior_Blue_0: 1448252480329919801
       Warrior_Blue_01000: -7028422606531620881
       Warrior_Blue_1: -8838482275237848885
+      Warrior_Blue_10: -49795780
       Warrior_Blue_100: 4887455543641441687
       Warrior_Blue_12: -8599349895570148482
       Warrior_Blue_13: 1617535587422869692
