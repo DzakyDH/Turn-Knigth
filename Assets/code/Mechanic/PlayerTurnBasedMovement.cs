@@ -6,32 +6,40 @@ public class PlayerGridMovement : MonoBehaviour
     public Tilemap groundTilemap;    // Tilemap tempat player boleh berjalan
     public Tilemap obstacleTilemap;  // Tilemap berisi obstacle/penghalang
     public float moveSpeed = 5f;
+    public LayerMask enemyLayer;
+    public EnemyDummy enemytarget;
 
+    private bool isSelected = false;
     private bool isMoving = false;
     private Vector3 targetPosition;
 
     private Animator animator;
+    private GameObject outline;
 
     void Start()
     {
-        // Menempatkan player tepat di tengah grid pada awalnya
         SnapPlayerToTile();
         animator = GetComponent<Animator>();
+
+        outline = transform.Find("outline")?.gameObject;
+        if (outline != null) outline.SetActive(false);
     }
 
     void Update()
     {
-        // Menyesuaikan animasi berdasarkan gerakan
         animator.SetBool("IsMoving", isMoving);
 
-        if (!isMoving)
-        {
-            HandleMouseClick();
-        }
-        else
+        if (isMoving)
         {
             MoveToTarget();
+            return;
         }
+        if (Input.GetMouseButtonDown(0))
+        {
+            HandlePlayerClick();
+        }
+
+
     }
 
     void SnapPlayerToTile()
@@ -41,24 +49,49 @@ public class PlayerGridMovement : MonoBehaviour
         targetPosition = transform.position;
     }
 
-    void HandleMouseClick()
+    void HandlePlayerClick()
     {
-        if (!Input.GetMouseButtonDown(0)) return;
-
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(
-            new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f)
-        );
+            new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f));
 
         Vector3Int clickedGridPos = groundTilemap.WorldToCell(mouseWorldPos);
         Vector3Int playerGridPos = groundTilemap.WorldToCell(transform.position);
 
+        if (!isSelected)
+        {
+            if(clickedGridPos == playerGridPos)
+            {
+                isSelected = true;
+                if (outline != null) outline.SetActive(true);
+                return;
+            }
+            return;
+        }
+        outline?.SetActive(false);
+        isSelected = false;
+
         int dx = Mathf.Abs(clickedGridPos.x - playerGridPos.x);
         int dy = Mathf.Abs(clickedGridPos.y - playerGridPos.y);
 
-        // Hanya boleh bergerak 1 tile dan tidak diagonal
-        if (dx + dy != 1)
+        if (dx + dy != 1) 
+            return;
+
+        Collider2D enemy = Physics2D.OverlapCircle(groundTilemap.GetCellCenterWorld
+            (clickedGridPos),0.2f , enemyLayer);
+  
+        if (enemy != null)
         {
-            Debug.Log("Klik tile terlalu jauh atau diagonal.");
+            int dist = Mathf.Abs(clickedGridPos.x - playerGridPos.x)
+                + Mathf.Abs(clickedGridPos.y - playerGridPos.y);
+
+            if (dist == 1)
+            {
+                Attack(enemy.GetComponent<EnemyDummy>());
+            }
+            else
+            {
+                Debug.Log("Musuh terlali jauh!");
+            }
             return;
         }
 
@@ -74,10 +107,6 @@ public class PlayerGridMovement : MonoBehaviour
             targetPosition = groundTilemap.GetCellCenterWorld(clickedGridPos);
             isMoving = true;
         }
-        else
-        {
-            Debug.Log("Tile tersebut bukan ground atau ada obstacle-nya.");
-        }
     }
 
     void MoveToTarget()
@@ -89,5 +118,15 @@ public class PlayerGridMovement : MonoBehaviour
             transform.position = targetPosition;
             isMoving = false;
         }
+    }
+    void Attack(EnemyDummy enemy)
+    {
+        enemytarget = enemy;
+        animator.SetTrigger("Attack");
+    }
+    public void DealDamage()
+    {
+        if (enemytarget != null)
+            enemytarget.TakeDamage(1);
     }
 }
