@@ -244,6 +244,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hp: 1
+  damage: 1
+  groundTilemap: {fileID: 1114793312}
+  obstacleTilemap: {fileID: 2120916796}
+  player: {fileID: 1602234817}
 --- !u!212 &571816976
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -4631,6 +4635,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 65536
   enemytarget: {fileID: 571816975}
+  currentHP: 0
+  maxHP: 3
 --- !u!95 &1602234820
 Animator:
   serializedVersion: 7

@@ -8,6 +8,8 @@ public class PlayerGridMovement : MonoBehaviour
     public float moveSpeed = 5f;
     public LayerMask enemyLayer;
     public EnemyDummy enemytarget;
+    public int currentHP;
+    public int maxHP = 3;
 
     private bool isSelected = false;
     private bool isMoving = false;
@@ -23,6 +25,7 @@ public class PlayerGridMovement : MonoBehaviour
 
         outline = transform.Find("outline")?.gameObject;
         if (outline != null) outline.SetActive(false);
+        currentHP = maxHP;
     }
 
     void Update()
@@ -117,6 +120,7 @@ public class PlayerGridMovement : MonoBehaviour
         {
             transform.position = targetPosition;
             isMoving = false;
+            EnemyTurnAll();
         }
     }
     void Attack(EnemyDummy enemy)
@@ -128,5 +132,23 @@ public class PlayerGridMovement : MonoBehaviour
     {
         if (enemytarget != null)
             enemytarget.TakeDamage(1);
+    }
+    public void TakeDamage(int dmg)
+    {
+        currentHP -= dmg;
+
+        if (currentHP <= 0)
+        {
+            Destroy(gameObject);
+        }
+    }
+    void EnemyTurnAll()
+    {
+        EnemyDummy[] enemies = FindObjectsByType<EnemyDummy>(FindObjectsSortMode.None);
+
+        foreach (EnemyDummy enemy in enemies)
+        {
+            enemy.EnemyTurn();
+        }
     }
 }
