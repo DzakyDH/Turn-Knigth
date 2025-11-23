@@ -8,12 +8,12 @@ public class PlayerGridMovement : MonoBehaviour
     public float moveSpeed = 5f;
     public LayerMask enemyLayer;
     public EnemyDummy enemytarget;
-    public int currentHP;
     public int maxHP = 3;
 
     private bool isSelected = false;
     private bool isMoving = false;
     private Vector3 targetPosition;
+    private int currentHP;
 
     private Animator animator;
     private GameObject outline;
@@ -70,7 +70,7 @@ public class PlayerGridMovement : MonoBehaviour
             }
             return;
         }
-        outline?.SetActive(false);
+        outline.SetActive(false);
         isSelected = false;
 
         int dx = Mathf.Abs(clickedGridPos.x - playerGridPos.x);
@@ -120,7 +120,7 @@ public class PlayerGridMovement : MonoBehaviour
         {
             transform.position = targetPosition;
             isMoving = false;
-            EnemyTurnAll();
+            FinishMove();
         }
     }
     void Attack(EnemyDummy enemy)
@@ -142,13 +142,8 @@ public class PlayerGridMovement : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    void EnemyTurnAll()
+    void FinishMove()
     {
-        EnemyDummy[] enemies = FindObjectsByType<EnemyDummy>(FindObjectsSortMode.None);
-
-        foreach (EnemyDummy enemy in enemies)
-        {
-            enemy.EnemyTurn();
-        }
+        TurnManager.Instance.EndPlayerTurn();
     }
 }

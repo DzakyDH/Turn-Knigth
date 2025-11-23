@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -5,10 +6,38 @@ public class EnemyDummy : MonoBehaviour
 {
     public int hp = 3;
     public int damage = 1;
+
     public Tilemap groundTilemap;
     public Tilemap obstacleTilemap;
     public Transform player;
+    public float moveSpeed;
 
+    private Animator animator;
+    private Vector3Int LastMoveTarget;
+
+    private PlayerGridMovement playerScript;
+
+    private void Start()
+    {
+        animator = GetComponent<Animator>();
+
+        if (player != null)
+            playerScript = player.GetComponent<PlayerGridMovement>();
+    }
+
+    private void Update()
+    {
+        if (player != null)
+            LookAtPlayer();
+    }
+    void LookAtPlayer()
+    {
+
+        if (player.position.x > transform.position.x)
+            transform.localScale = new Vector3(1, 1, 1);
+        else 
+            transform.localScale = new Vector3(-1, 1, 1);
+    }
     public void TakeDamage(int dmg)
     {
         hp -= dmg;    
@@ -29,10 +58,12 @@ public class EnemyDummy : MonoBehaviour
 
         if (Mathf.Abs(dx) + Mathf.Abs(dy) == 1)
         {
-            player.GetComponent<PlayerGridMovement>().TakeDamage(damage);
+            animator.SetTrigger("Attack");
             return;
         }
+
         Vector3Int moveTo = enemyPos;
+
         if (Mathf.Abs(dx) > Mathf.Abs(dy))
             moveTo.x += dx > 0 ? 1 : -1;
         else
@@ -40,7 +71,29 @@ public class EnemyDummy : MonoBehaviour
 
         if (groundTilemap.HasTile(moveTo) && !obstacleTilemap.HasTile(moveTo))
         {
-            transform.position = groundTilemap.GetCellCenterWorld(moveTo);
+            LastMoveTarget = moveTo;
+            StartCoroutine(StartMovingEnemy());
+        }
+    }
+    IEnumerator StartMovingEnemy()
+    {
+        Vector3 target = groundTilemap.GetCellCenterWorld(LastMoveTarget);
+
+        animator.SetBool("IsMoving", true);
+
+        while (Vector3.Distance(transform.position, target) > 0.01f)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
+            yield return null;
+        }
+        transform.position = target;
+        animator.SetBool("IsMoving", false);
+    }
+    public void EnemyDealDamage()
+    {
+        if (playerScript != null)
+        {
+            playerScript.TakeDamage(damage);
         }
     }
 }
