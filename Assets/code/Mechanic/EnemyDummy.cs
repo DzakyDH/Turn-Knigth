@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -6,10 +5,10 @@ public class EnemyDummy : CharacterBase
 {
     public int hp = 3;
     public int damage = 1;
-
     public Tilemap groundTilemap;
     public Tilemap obstacleTilemap;
     public Transform player;
+<<<<<<< HEAD
     public float moveSpeed = 2f;
 
     private Animator animator;
@@ -38,6 +37,10 @@ public class EnemyDummy : CharacterBase
     }
 
     public override IEnumerator TakeTurn()
+=======
+
+    public void TakeDamage(int dmg)
+>>>>>>> parent of da2f7fc (0.2.5)
     {
         TurnDone = false;
         yield return EnemyTurnRoutine();
@@ -56,12 +59,15 @@ public class EnemyDummy : CharacterBase
 
         if (Mathf.Abs(dx) + Mathf.Abs(dy) == 1)
         {
+<<<<<<< HEAD
             yield return AttackRoutine();
             yield break;
+=======
+            player.GetComponent<PlayerGridMovement>().TakeDamage(damage);
+            return;
+>>>>>>> parent of da2f7fc (0.2.5)
         }
-
         Vector3Int moveTo = enemyPos;
-
         if (Mathf.Abs(dx) > Mathf.Abs(dy))
             moveTo.x += dx > 0 ? 1 : -1;
         else
@@ -69,6 +75,7 @@ public class EnemyDummy : CharacterBase
 
         if (groundTilemap.HasTile(moveTo) && !obstacleTilemap.HasTile(moveTo))
         {
+<<<<<<< HEAD
             lastMoveTarget = moveTo;
             yield return MoveRoutine();
         }
@@ -103,6 +110,9 @@ public class EnemyDummy : CharacterBase
         {
             IsDead = true;
             Destroy(gameObject);
+=======
+            transform.position = groundTilemap.GetCellCenterWorld(moveTo);
+>>>>>>> parent of da2f7fc (0.2.5)
         }
     }
 }
