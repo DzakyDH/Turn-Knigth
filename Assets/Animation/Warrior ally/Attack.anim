@@ -95,10 +95,3 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.8333333
-    functionName: FinishMove
-    data: 
-    objectReferenceParameter: {fileID: 11500000, guid: 87df9466914e76b49bd7bd3e7049396e, type: 3}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
