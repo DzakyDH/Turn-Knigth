@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class EnemyDummy : MonoBehaviour
+public class EnemyDummy : CharacterBase
 {
     public int hp = 3;
     public int damage = 1;
@@ -10,56 +10,54 @@ public class EnemyDummy : MonoBehaviour
     public Tilemap groundTilemap;
     public Tilemap obstacleTilemap;
     public Transform player;
-    public float moveSpeed;
+    public float moveSpeed = 2f;
 
     private Animator animator;
-    private Vector3Int LastMoveTarget;
-
+    private Vector3Int lastMoveTarget;
     private PlayerGridMovement playerScript;
 
-    private void Start()
+    void Start()
     {
         animator = GetComponent<Animator>();
-
         if (player != null)
             playerScript = player.GetComponent<PlayerGridMovement>();
     }
 
-    private void Update()
+    void Update()
     {
         if (player != null)
             LookAtPlayer();
     }
+
     void LookAtPlayer()
     {
-
         if (player.position.x > transform.position.x)
-            transform.localScale = new Vector3(1, 1, 1);
-        else 
+            transform.localScale = Vector3.one;
+        else
             transform.localScale = new Vector3(-1, 1, 1);
     }
-    public void TakeDamage(int dmg)
+
+    public override IEnumerator TakeTurn()
     {
-        hp -= dmg;    
-        if (hp <= 0)
-        {
-            Destroy(gameObject);
-        }
+        TurnDone = false;
+        yield return EnemyTurnRoutine();
+        TurnDone = true;
     }
-    public void EnemyTurn()
+
+    IEnumerator EnemyTurnRoutine()
     {
-        if (player == null) return;
+        if (player == null) yield break;
 
         Vector3Int enemyPos = groundTilemap.WorldToCell(transform.position);
-        Vector3Int playerpos = groundTilemap.WorldToCell(player.position);
+        Vector3Int playerPos = groundTilemap.WorldToCell(player.position);
 
-        int dx = playerpos.x - enemyPos.x;
-        int dy = playerpos.y - enemyPos.y;
+        int dx = playerPos.x - enemyPos.x;
+        int dy = playerPos.y - enemyPos.y;
 
         if (Mathf.Abs(dx) + Mathf.Abs(dy) == 1)
         {
-            animator.SetTrigger("Attack");
-            return;
+            yield return AttackRoutine();
+            yield break;
         }
 
         Vector3Int moveTo = enemyPos;
@@ -71,14 +69,21 @@ public class EnemyDummy : MonoBehaviour
 
         if (groundTilemap.HasTile(moveTo) && !obstacleTilemap.HasTile(moveTo))
         {
-            LastMoveTarget = moveTo;
-            StartCoroutine(StartMovingEnemy());
+            lastMoveTarget = moveTo;
+            yield return MoveRoutine();
         }
     }
-    IEnumerator StartMovingEnemy()
-    {
-        Vector3 target = groundTilemap.GetCellCenterWorld(LastMoveTarget);
 
+    IEnumerator AttackRoutine()
+    {
+        animator.SetTrigger("Attack");
+        yield return new WaitForSeconds(0.4f);
+        playerScript?.TakeDamage(damage);
+    }
+
+    IEnumerator MoveRoutine()
+    {
+        Vector3 target = groundTilemap.GetCellCenterWorld(lastMoveTarget);
         animator.SetBool("IsMoving", true);
 
         while (Vector3.Distance(transform.position, target) > 0.01f)
@@ -86,14 +91,18 @@ public class EnemyDummy : MonoBehaviour
             transform.position = Vector3.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
             yield return null;
         }
+
         transform.position = target;
         animator.SetBool("IsMoving", false);
     }
-    public void EnemyDealDamage()
+
+    public void TakeDamage(int dmg)
     {
-        if (playerScript != null)
+        hp -= dmg;
+        if (hp <= 0)
         {
-            playerScript.TakeDamage(damage);
+            IsDead = true;
+            Destroy(gameObject);
         }
     }
 }

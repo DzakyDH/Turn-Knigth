@@ -1,13 +1,19 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.UIElements;
 
-public class PlayerGridMovement : MonoBehaviour
+public class PlayerGridMovement : CharacterBase
 {
-    public Tilemap groundTilemap;    // Tilemap tempat player boleh berjalan
-    public Tilemap obstacleTilemap;  // Tilemap berisi obstacle/penghalang
+    [Header("Tilemaps & Movement")]
+    public Tilemap groundTilemap;
+    public Tilemap obstacleTilemap;
     public float moveSpeed = 5f;
+
+    [Header("Combat")]
     public LayerMask enemyLayer;
-    public EnemyDummy enemytarget;
+    public EnemyDummy enemyTarget;
+    public int damage = 1;
     public int maxHP = 3;
 
     private bool isSelected = false;
@@ -22,7 +28,6 @@ public class PlayerGridMovement : MonoBehaviour
     {
         SnapPlayerToTile();
         animator = GetComponent<Animator>();
-
         outline = transform.Find("outline")?.gameObject;
         if (outline != null) outline.SetActive(false);
         currentHP = maxHP;
@@ -32,17 +37,22 @@ public class PlayerGridMovement : MonoBehaviour
     {
         animator.SetBool("IsMoving", isMoving);
 
-        if (isMoving)
-        {
+        if (!TurnDone && isMoving)
             MoveToTarget();
-            return;
-        }
-        if (Input.GetMouseButtonDown(0))
-        {
+
+        else if (!TurnDone && Input.GetMouseButtonDown(0))
             HandlePlayerClick();
-        }
+ 
+    }
 
+    public override IEnumerator TakeTurn()
+    {
+        TurnDone = false;
+        isSelected = false;
+        outline?.SetActive(false);
 
+        while (!TurnDone)
+            yield return null;
     }
 
     void SnapPlayerToTile()
@@ -54,60 +64,40 @@ public class PlayerGridMovement : MonoBehaviour
 
     void HandlePlayerClick()
     {
-        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(
-            new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0f));
-
+        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector3Int clickedGridPos = groundTilemap.WorldToCell(mouseWorldPos);
         Vector3Int playerGridPos = groundTilemap.WorldToCell(transform.position);
 
-        if (!isSelected)
+        // Pilih player
+        if (!isSelected && clickedGridPos == playerGridPos)
         {
-            if(clickedGridPos == playerGridPos)
-            {
-                isSelected = true;
-                if (outline != null) outline.SetActive(true);
-                return;
-            }
+            isSelected = true;
+            outline?.SetActive(true);
             return;
         }
-        outline.SetActive(false);
+
+        outline?.SetActive(false);
         isSelected = false;
 
         int dx = Mathf.Abs(clickedGridPos.x - playerGridPos.x);
         int dy = Mathf.Abs(clickedGridPos.y - playerGridPos.y);
+        if (dx + dy != 1) return;
 
-        if (dx + dy != 1) 
-            return;
+        Collider2D enemyCol = Physics2D.OverlapCircle(
+            groundTilemap.GetCellCenterWorld(clickedGridPos), 0.2f, enemyLayer);
 
-        Collider2D enemy = Physics2D.OverlapCircle(groundTilemap.GetCellCenterWorld
-            (clickedGridPos),0.2f , enemyLayer);
-  
-        if (enemy != null)
+        if (enemyCol != null)
         {
-            int dist = Mathf.Abs(clickedGridPos.x - playerGridPos.x)
-                + Mathf.Abs(clickedGridPos.y - playerGridPos.y);
-
-            if (dist == 1)
-            {
-                Attack(enemy.GetComponent<EnemyDummy>());
-            }
-            else
-            {
-                Debug.Log("Musuh terlali jauh!");
-            }
+            enemyTarget = enemyCol.GetComponent<EnemyDummy>();
+            StartCoroutine(AttackRoutine());
             return;
         }
 
-        // Pengecekan apakah tile adalah ground dan bukan obstacle
+        // Move ke tile kosong
         if (groundTilemap.HasTile(clickedGridPos) && !obstacleTilemap.HasTile(clickedGridPos))
         {
-            // Flip sprite berdasarkan arah
-            if (clickedGridPos.x > playerGridPos.x)
-                transform.localScale = new Vector3(1, 1, 1); // facing right
-            else if (clickedGridPos.x < playerGridPos.x)
-                transform.localScale = new Vector3(-1, 1, 1); // facing left
-
             targetPosition = groundTilemap.GetCellCenterWorld(clickedGridPos);
+            transform.localScale = clickedGridPos.x > playerGridPos.x ? Vector3.one : new Vector3(-1, 1, 1);
             isMoving = true;
         }
     }
@@ -120,30 +110,32 @@ public class PlayerGridMovement : MonoBehaviour
         {
             transform.position = targetPosition;
             isMoving = false;
-            FinishMove();
+            EndTurn();
         }
     }
-    void Attack(EnemyDummy enemy)
+
+    IEnumerator AttackRoutine()
     {
-        enemytarget = enemy;
         animator.SetTrigger("Attack");
+        yield return new WaitForSeconds(0.4f);
+        enemyTarget?.TakeDamage(damage);
+        EndTurn();
     }
-    public void DealDamage()
-    {
-        if (enemytarget != null)
-            enemytarget.TakeDamage(1);
-    }
+
     public void TakeDamage(int dmg)
     {
         currentHP -= dmg;
-
         if (currentHP <= 0)
         {
+            IsDead = true;
             Destroy(gameObject);
         }
     }
-    void FinishMove()
+
+    public override void EndTurn()
     {
-        TurnManager.Instance.EndPlayerTurn();
+        base.EndTurn();
+        isMoving = false;
+        enemyTarget = null;
     }
 }

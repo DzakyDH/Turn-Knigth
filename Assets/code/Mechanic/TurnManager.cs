@@ -1,48 +1,35 @@
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TurnManager : MonoBehaviour
 {
     public static TurnManager Instance;
 
-    private void Awake()
+    public List<CharacterBase> players = new List<CharacterBase>();
+    public List<CharacterBase> enemies = new List<CharacterBase>();
+
+    private void Awake() => Instance = this;
+
+    private void Start() => StartCoroutine(MainTurnLoop());
+
+    IEnumerator MainTurnLoop()
     {
-        Instance = this;
-    }
-
-    public bool isPlayerTurn = true;
-
-    private List<EnemyDummy> allEnemies = new List<EnemyDummy>();
-
-    void Start()
-    {
-        RefreshEnemyList();
-    }
-
-    public void RefreshEnemyList()
-    {
-        allEnemies.Clear();
-        allEnemies.AddRange(FindObjectsByType<EnemyDummy>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
-    }
-
-    public void EndPlayerTurn()
-    {
-        isPlayerTurn = false;
-        StartCoroutine(EnemyTurnAll());
-    }
-
-    IEnumerator EnemyTurnAll()
-    {
-        RefreshEnemyList();
-
-        foreach (EnemyDummy enemy in allEnemies)
+        while (true)
         {
-            enemy.EnemyTurn();
-            yield return new WaitForSeconds(0.4f);
-        }
+            // Player turn
+            foreach (var p in players)
+            {
+                if (p == null || p.IsDead) continue;
+                yield return StartCoroutine(p.TakeTurn());
+            }
 
-        // Kembali ke Player
-        isPlayerTurn = true;
+            // Enemy turn
+            foreach (var e in enemies)
+            {
+                if (e == null || e.IsDead) continue;
+                yield return StartCoroutine(e.TakeTurn());
+            }
+        }
     }
 }
