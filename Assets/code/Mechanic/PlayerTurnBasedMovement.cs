@@ -12,18 +12,14 @@ public class PlayerGridMovement : CharacterBase
 
     [Header("Combat")]
     public LayerMask enemyLayer;
-<<<<<<< HEAD
     public EnemyDummy enemyTarget;
     public int damage = 1;
-=======
-    public EnemyDummy enemytarget;
-    public int currentHP;
->>>>>>> parent of da2f7fc (0.2.5)
     public int maxHP = 3;
 
     private bool isSelected = false;
     private bool isMoving = false;
     private Vector3 targetPosition;
+    private int currentHP;
 
     private Animator animator;
     private GameObject outline;
@@ -79,10 +75,7 @@ public class PlayerGridMovement : CharacterBase
             outline?.SetActive(true);
             return;
         }
-<<<<<<< HEAD
 
-=======
->>>>>>> parent of da2f7fc (0.2.5)
         outline?.SetActive(false);
         isSelected = false;
 
@@ -117,11 +110,7 @@ public class PlayerGridMovement : CharacterBase
         {
             transform.position = targetPosition;
             isMoving = false;
-<<<<<<< HEAD
             EndTurn();
-=======
-            EnemyTurnAll();
->>>>>>> parent of da2f7fc (0.2.5)
         }
     }
 
@@ -142,22 +131,11 @@ public class PlayerGridMovement : CharacterBase
             Destroy(gameObject);
         }
     }
-<<<<<<< HEAD
 
     public override void EndTurn()
     {
         base.EndTurn();
         isMoving = false;
         enemyTarget = null;
-=======
-    void EnemyTurnAll()
-    {
-        EnemyDummy[] enemies = FindObjectsByType<EnemyDummy>(FindObjectsSortMode.None);
-
-        foreach (EnemyDummy enemy in enemies)
-        {
-            enemy.EnemyTurn();
-        }
->>>>>>> parent of da2f7fc (0.2.5)
     }
 }
