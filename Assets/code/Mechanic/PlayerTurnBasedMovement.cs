@@ -3,8 +3,7 @@ using UnityEngine.Tilemaps;
 
 public class PlayerGridMovement : MonoBehaviour
 {
-    public Tilemap groundTilemap;    // Tilemap tempat player boleh berjalan
-    public Tilemap obstacleTilemap;  // Tilemap berisi obstacle/penghalang
+    public Tilemap groundTilemap;
     public float moveSpeed = 5f;
     public LayerMask enemyLayer;
     public EnemyDummy enemytarget;
@@ -62,7 +61,7 @@ public class PlayerGridMovement : MonoBehaviour
 
         if (!isSelected)
         {
-            if(clickedGridPos == playerGridPos)
+            if (clickedGridPos == playerGridPos)
             {
                 isSelected = true;
                 if (outline != null) outline.SetActive(true);
@@ -76,40 +75,28 @@ public class PlayerGridMovement : MonoBehaviour
         int dx = Mathf.Abs(clickedGridPos.x - playerGridPos.x);
         int dy = Mathf.Abs(clickedGridPos.y - playerGridPos.y);
 
-        if (dx + dy != 1) 
+        if (dx + dy != 1)
             return;
 
         Collider2D enemy = Physics2D.OverlapCircle(groundTilemap.GetCellCenterWorld
-            (clickedGridPos),0.2f , enemyLayer);
-  
-        if (enemy != null)
-        {
-            int dist = Mathf.Abs(clickedGridPos.x - playerGridPos.x)
-                + Mathf.Abs(clickedGridPos.y - playerGridPos.y);
+            (clickedGridPos), 0.2f, enemyLayer);
 
-            if (dist == 1)
-            {
-                Attack(enemy.GetComponent<EnemyDummy>());
-            }
-            else
-            {
-                Debug.Log("Musuh terlali jauh!");
-            }
+        int dist = Mathf.Abs(clickedGridPos.x - playerGridPos.x)
+           + Mathf.Abs(clickedGridPos.y - playerGridPos.y);
+
+        if (enemy != null && dist == 1)
+        {
+            Attack(enemy.GetComponent<EnemyDummy>());
             return;
         }
 
-        // Pengecekan apakah tile adalah ground dan bukan obstacle
-        if (groundTilemap.HasTile(clickedGridPos) && !obstacleTilemap.HasTile(clickedGridPos))
+        if (enemy == null && groundTilemap.HasTile(clickedGridPos))
         {
-            // Flip sprite berdasarkan arah
-            if (clickedGridPos.x > playerGridPos.x)
-                transform.localScale = new Vector3(1, 1, 1); // facing right
-            else if (clickedGridPos.x < playerGridPos.x)
-                transform.localScale = new Vector3(-1, 1, 1); // facing left
-
             targetPosition = groundTilemap.GetCellCenterWorld(clickedGridPos);
+            FaceDirection(targetPosition);
             isMoving = true;
         }
+
     }
 
     void MoveToTarget()
@@ -127,6 +114,7 @@ public class PlayerGridMovement : MonoBehaviour
     {
         enemytarget = enemy;
         animator.SetTrigger("Attack");
+        FaceDirection(enemy.transform.position);
     }
     public void DealDamage()
     {
@@ -145,5 +133,16 @@ public class PlayerGridMovement : MonoBehaviour
     void FinishMove()
     {
         TurnManager.Instance.EndPlayerTurn();
+    }
+    void FaceDirection(Vector3 target)
+    {
+        if (target.x > transform.position.x)
+        {
+            transform.localScale = new Vector3(1, 1, 1);
+        }
+        else if (target.x < transform.position.x)
+        {
+            transform.localScale = new Vector3(-1, 1, 1);
+        }
     }
 }

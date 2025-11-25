@@ -8,7 +8,6 @@ public class EnemyDummy : MonoBehaviour
     public int damage = 1;
 
     public Tilemap groundTilemap;
-    public Tilemap obstacleTilemap;
     public Transform player;
     public float moveSpeed;
 
@@ -69,10 +68,11 @@ public class EnemyDummy : MonoBehaviour
         else
             moveTo.y += dy > 0 ? 1 : -1;
 
-        if (groundTilemap.HasTile(moveTo) && !obstacleTilemap.HasTile(moveTo))
+        if (groundTilemap.HasTile(moveTo))
         {
             LastMoveTarget = moveTo;
             StartCoroutine(StartMovingEnemy());
+            FaceDirection(player.transform.position);
         }
     }
     IEnumerator StartMovingEnemy()
@@ -94,6 +94,18 @@ public class EnemyDummy : MonoBehaviour
         if (playerScript != null)
         {
             playerScript.TakeDamage(damage);
+            FaceDirection(player.transform.position);
+        }
+    }
+    void FaceDirection(Vector3 target)
+    {
+        if (target.x > transform.position.x)
+        {
+            transform.localScale = new Vector3(1, 1, 1);
+        }
+        else if (target.x < transform.position.x)
+        {
+            transform.localScale = new Vector3(-1, 1, 1);
         }
     }
 }
