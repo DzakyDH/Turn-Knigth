@@ -9,6 +9,8 @@ public class PlayerGridMovement : MonoBehaviour
     public EnemyDummy enemytarget;
     public int maxHP = 3;
 
+    public bool hasMoved = false;
+
     private bool isSelected = false;
     private bool isMoving = false;
     private Vector3 targetPosition;
@@ -29,6 +31,9 @@ public class PlayerGridMovement : MonoBehaviour
 
     void Update()
     {
+        if (hasMoved) return;
+        if (!TurnManager.Instance.isPlayerPhase) return;
+
         animator.SetBool("IsMoving", isMoving);
 
         if (isMoving)
@@ -37,11 +42,7 @@ public class PlayerGridMovement : MonoBehaviour
             return;
         }
         if (Input.GetMouseButtonDown(0))
-        {
             HandlePlayerClick();
-        }
-
-
     }
 
     void SnapPlayerToTile()
@@ -81,8 +82,7 @@ public class PlayerGridMovement : MonoBehaviour
         Collider2D enemy = Physics2D.OverlapCircle(groundTilemap.GetCellCenterWorld
             (clickedGridPos), 0.2f, enemyLayer);
 
-        int dist = Mathf.Abs(clickedGridPos.x - playerGridPos.x)
-           + Mathf.Abs(clickedGridPos.y - playerGridPos.y);
+        int dist = dx + dy;
 
         if (enemy != null && dist == 1)
         {
@@ -90,7 +90,7 @@ public class PlayerGridMovement : MonoBehaviour
             return;
         }
 
-        if (enemy == null && groundTilemap.HasTile(clickedGridPos))
+        if (!TurnManager.Instance.IsTileOccupied(clickedGridPos) && groundTilemap.HasTile(clickedGridPos))
         {
             targetPosition = groundTilemap.GetCellCenterWorld(clickedGridPos);
             FaceDirection(targetPosition);
@@ -115,11 +115,15 @@ public class PlayerGridMovement : MonoBehaviour
         enemytarget = enemy;
         animator.SetTrigger("Attack");
         FaceDirection(enemy.transform.position);
+        FinishMove();
     }
     public void DealDamage()
     {
         if (enemytarget != null)
+        {
             enemytarget.TakeDamage(1);
+            enemytarget = null;
+        }
     }
     public void TakeDamage(int dmg)
     {
@@ -127,12 +131,18 @@ public class PlayerGridMovement : MonoBehaviour
 
         if (currentHP <= 0)
         {
+            TurnManager.Instance.RemoveAlly(this);
             Destroy(gameObject);
         }
     }
     void FinishMove()
     {
-        TurnManager.Instance.EndPlayerTurn();
+        isMoving = false;
+        animator.SetBool("IsMoving", false);
+
+
+        hasMoved = true;
+        TurnManager.Instance.NotifyAllyFinished(this);
     }
     void FaceDirection(Vector3 target)
     {
